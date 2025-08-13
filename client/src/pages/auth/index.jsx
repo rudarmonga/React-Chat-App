@@ -4,19 +4,85 @@ import Victory from '@/assets/victory.svg'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
+import { apiClient } from '@/lib/api-client'
+import { LOGIN_URL, SIGNUP_URL } from '@/utils/constants'
+import { useNavigate } from 'react-router-dom'
 
 function Auth() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const handleLogin = () => {
-    // Handle login logic here
+  const validationlogin = () => {
+    if(!email.length){
+      toast.error("Email is Required");
+      return false;
+    }
+    if(!password.length){
+      toast.error("Password is Required");
+      return false;
+    }
+    return true;
   }
 
-  const handleSignUp = () => {
-    // Handle sign-up logic here
+  const validationsignup = () => {
+    if(!email.length){
+      toast.error("Email is Required");
+      return false;
+    }
+    if(!password.length){
+      toast.error("Password is Required");
+      return false;
+    }
+    if(password !== confirmPassword){
+      toast.error("Password and ConfirmPassword are not same");
+      return false;
+    }
+    return true;
   }
+
+  const handleSignUp = async () => {
+    try {
+      if (validationsignup()) {
+        setLoading(true);
+        const response = await apiClient.post(SIGNUP_URL, { email, password }, { withCredentials: true });
+        console.log(response);
+        if(response.status === 201) {
+          navigate('/profile');
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleLogin = async () => {
+    try {
+      if (validationlogin()) {
+        setLoading(true);
+        const response = await apiClient.post(LOGIN_URL, { email, password }, { withCredentials: true });
+        console.log(response);
+        if(response.data.user._id) {
+          if(response.data.user.profileSetup) {
+            navigate('/chat');
+          } else {
+            navigate('/profile');
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[100vh] w-full flex items-center justify-center bg-gray-50 p-4">
       <div className="min-h-[80vh] bg-white shadow-2xl w-full max-w-[1200px] rounded-3xl grid xl:grid-cols-2 overflow-hidden">
@@ -32,8 +98,7 @@ function Auth() {
           </div>
 
           <div className="flex items-center justify-center w-full">
-            <Tabs defaultValue="login" className="w-full max-w-[350px]">
-              
+            <Tabs defaultValue="login" className="w-3/4">
               <TabsList className="flex border-b border-gray-300">
                 <TabsTrigger 
                   value="login" 
@@ -68,7 +133,13 @@ function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)} 
                 />
-                <Button className='rounded-full p-6' onClick={handleLogin}>Login</Button>
+                <Button
+                  className={`rounded-full p-6 transition-opacity duration-300 ${loading ? "opacity-50 cursor-not-allowed" : "opacity-100"}`}
+                  onClick={handleLogin}
+                  disabled={loading}
+                >
+                  {loading ? "Please wait..." : "Login"}
+                </Button>
               </TabsContent>
 
               <TabsContent value="signup" className="flex flex-col gap-4 mt-6">
@@ -93,7 +164,13 @@ function Auth() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-                <Button className='rounded-full p-6' onClick={handleSignUp}>Sign Up</Button>
+                <Button
+                  className={`rounded-full p-6 transition-opacity duration-300 ${loading ? "opacity-50 cursor-not-allowed" : "opacity-100"}`}
+                  onClick={handleSignUp}
+                  disabled={loading}
+                >
+                  {loading ? "Please wait..." : "Sign Up"}
+                </Button>
               </TabsContent>
             </Tabs>
           </div>
