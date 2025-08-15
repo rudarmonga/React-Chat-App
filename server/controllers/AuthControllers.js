@@ -49,10 +49,39 @@ export const login = async (req, res, next) => {
             sameSite: "None",
         });
         res.status(200).json({
-            user
+            user: {
+                id: user._id,
+                email: user.email,
+                profileSetup: user.profileSetup,
+                fullName: user.fullName,
+                lastName: user.lastName,
+                image: user.image,
+                color: user.color,
+            },
         });
     } catch (error) {
         console.log(error.message);
         res.status(500).send("Internal Server Error");
     }
 }
+
+export const getUserInfo = async (req, res, next) => {
+    try {
+        const user = await Users.findById(req.userId);
+        if (!user) {
+            return res.status(404).send("User with the given id not found.");
+        }
+        res.status(200).json({
+            id: user._id,
+            email: user.email,
+            profileSetup: user.profileSetup,
+            fullName: user.fullName,
+            lastName: user.lastName,
+            image: user.image,
+            color: user.color,
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send("Internal Server Error");
+    }
+}  
