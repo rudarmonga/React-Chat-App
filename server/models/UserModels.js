@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is Required"],
     },
-    fullName: {
+    firstName: {
         type: String,
         required: false,
     },
